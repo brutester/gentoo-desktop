@@ -17,12 +17,12 @@ SRC_URI=""
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
-IUSE="pax_kernel +vmci +vsock"
+IUSE="pax_kernel"
 
 RDEPEND=""
 DEPEND="${RDEPEND}
 	|| ( =app-emulation/vmware-player-6.0.${PV_MINOR}*
-	=app-emulation/vmware-workstation-11.0.${PV_MINOR}* )"
+	=app-emulation/vmware-workstation-11.1.${PV_MINOR}* )"
 
 S=${WORKDIR}
 
@@ -30,16 +30,6 @@ pkg_setup() {
 	CONFIG_CHECK="~HIGH_RES_TIMERS"
 	if kernel_is ge 2 6 37 && kernel_is lt 2 6 39; then
 		CONFIG_CHECK="${CONFIG_CHECK} BKL"
-	fi
-	if use vmci ; then
-		CONFIG_CHECK="${CONFIG_CHECK} !VMWARE_VMCI"
-	else
-		CONFIG_CHECK="${CONFIG_CHECK} VMWARE_VMCI"
-	fi
-	if use vsock ; then
-		CONFIG_CHECK="${CONFIG_CHECK} !VMWARE_VMCI_VSOCKETS"
-	else
-		CONFIG_CHECK="${CONFIG_CHECK} VMWARE_VMCI_VSOCKETS"
 	fi
 
 	linux-info_pkg_setup
@@ -49,9 +39,11 @@ pkg_setup() {
 	VMWARE_GROUP=${VMWARE_GROUP:-vmware}
 
 	VMWARE_MODULE_LIST_ALL="vmblock vmmon vmnet vmci vsock"
-	VMWARE_MODULE_LIST="vmblock vmmon vmnet"
-	use vmci && VMWARE_MODULE_LIST="${VMWARE_MODULE_LIST} vmci"
-	use vsock && VMWARE_MODULE_LIST="${VMWARE_MODULE_LIST} vsock"
+	# Due to Workstation 11/Player (Pro) 7 taking advantage of the mainlined kernel
+	# modules, patching the VMCI/VSOCK sources is no longer required.
+# Fix Me: do proper patch for vmblock
+#	VMWARE_MODULE_LIST="vmblock vmmon vmnet"
+	VMWARE_MODULE_LIST="vmmon vmnet"
 
 	VMWARE_MOD_DIR="${PN}-${PVR}"
 
@@ -87,10 +79,10 @@ src_prepare() {
 	kernel_is ge 3 15 0 && epatch \
 			"${FILESDIR}/666-kernel-3.15.patch" \
 			"${FILESDIR}/666-vmblock.patch" 
-#			"${FILESDIR}/666-vmci_fix.patch"
 
-#	kernel_is ge 3 17 0 && epatch \
-#			"${FILESDIR}/666-kernel-3.17.patch"
+	kernel_is ge 3 19 0 && epatch \
+			"${FILESDIR}/666-kernel-3.19.patch" \
+			"${FILESDIR}/666-kernel-3.19-2.patch"
 
 	# Allow user patches so they can support RC kernels and whatever else
 	epatch_user
@@ -104,6 +96,7 @@ src_install() {
 		KERNEL=="vmw_vmci",  GROUP="vmware", MODE="660"
 		KERNEL=="vmmon", GROUP="vmware", MODE="660"
 		KERNEL=="vsock", GROUP="vmware", MODE="660"
+		KERNEL=="vmw_vsock",  GROUP="vmware", MODE="660"
 	EOF
 	udev_dorules "${udevrules}"
 }

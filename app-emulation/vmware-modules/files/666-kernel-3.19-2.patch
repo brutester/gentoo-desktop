@@ -1,0 +1,11 @@
+--- vmci-only/linux/vmciKernelIf.c.old	2015-02-09 19:30:09.299610901 +0200
++++ vmci-only/linux/vmciKernelIf.c	2015-02-09 19:30:23.891428185 +0200
+@@ -1277,7 +1277,7 @@
+          int err;
+ 
+          /* The iovec will track bytesCopied internally. */
+-         err = memcpy_toiovec(iov, (uint8 *)va + pageOffset, toCopy);
++         err = memcpy_toiovecend(iov, (uint8 *)va + pageOffset, 0, toCopy);
+          if (err != 0) {
+             if (kernelIf->host) {
+                kunmap(kernelIf->u.h.page[pageIndex]);

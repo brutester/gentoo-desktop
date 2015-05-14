@@ -1,0 +1,66 @@
+--- vmnet-only/driver.c.old	2015-02-09 17:32:30.635687965 +0200
++++ vmnet-only/driver.c	2015-02-09 17:36:12.562602998 +0200
+@@ -265,9 +265,15 @@
+ {
+    int ret = -ENOTTY;
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 19, 0)
+    if (filp && filp->f_op && filp->f_op->ioctl == VNetFileOpIoctl) {
+       ret = VNetFileOpIoctl(filp->f_dentry->d_inode, filp, iocmd, ioarg);
+    }
++#else 
++   if (filp && filp->f_op && filp->f_op->ioctl == VNetFileOpIoctl) {
++      ret = VNetFileOpIoctl(filp->f_path.dentry->d_inode, filp, iocmd, ioarg);
++   }
++#endif
+    return ret;
+ }
+ 
+@@ -1191,10 +1197,17 @@
+    struct inode *inode = NULL;
+    long err;
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 19, 0)
+    if (filp && filp->f_dentry) {
+       inode = filp->f_dentry->d_inode;
+    }
+    err = VNetFileOpIoctl(inode, filp, iocmd, ioarg);
++#else
++   if (filp && filp->f_path.dentry) {
++      inode = filp->f_path.dentry->d_inode;
++   }
++   err = VNetFileOpIoctl(inode, filp, iocmd, ioarg);
++#endif
+    return err;
+ }
+ #endif
+--- vmnet-only/userif.c.old	2015-02-09 17:36:31.663510476 +0200
++++ vmnet-only/userif.c	2015-02-09 17:37:33.025214004 +0200
+@@ -523,7 +523,13 @@
+       .iov_base = buf,
+       .iov_len  = len,
+    };
++#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 19, 0)
+    return skb_copy_datagram_iovec(skb, 0, &iov, len);
++#else
++   struct iov_iter to;
++   iov_iter_init(&to, READ, &iov, 1, len);
++   return skb_copy_datagram_iter(skb, 0, &to, len);
++#endif
+ }
+ 
+ 
+--- vmblock-only/linux/file.c.old	2015-02-09 18:02:14.732210256 +0200
++++ vmblock-only/linux/file.c	2015-02-09 18:04:17.645339407 +0200
+@@ -92,7 +92,11 @@
+     * and that would try to acquire the inode's semaphore; if the two inodes
+     * are the same we'll deadlock.
+     */
++#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 19, 0)
+    if (actualFile->f_dentry && inode == actualFile->f_dentry->d_inode) {
++#else
++   if (actualFile->f_path.dentry && inode == actualFile->f_path.dentry->d_inode) {
++#endif
+       Warning("FileOpOpen: identical inode encountered, open cannot succeed.\n");
+       if (filp_close(actualFile, current->files) < 0) {
+          Warning("FileOpOpen: unable to close opened file.\n");
