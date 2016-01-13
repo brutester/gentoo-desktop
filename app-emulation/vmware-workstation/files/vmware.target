@@ -1,0 +1,12 @@
+[Unit]
+Description=VMware Workstation Service(s)
+Requires=vmware-vmmon.service
+Wants=vmware-vmw_vmci.service
+Wants=vmware-vmw_vsock.service
+Wants=vmware-vmw_vsock_vmci.service
+Wants=vmware-vmblock.service
+Wants=vmware-vmnet.service
+Wants=vmware-usb.service
+
+[Install]
+WantedBy=multi-user.target

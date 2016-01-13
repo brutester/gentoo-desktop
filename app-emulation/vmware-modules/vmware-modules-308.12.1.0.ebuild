@@ -7,7 +7,7 @@ EAPI=5
 inherit eutils flag-o-matic linux-info linux-mod user versionator udev
 
 PV_MAJOR=$(get_major_version)
-PV_MINOR=$(get_version_component_range 2)
+PV_MINOR=$(get_version_component_range 2-)
 
 DESCRIPTION="VMware kernel modules"
 HOMEPAGE="http://www.vmware.com/"
@@ -21,8 +21,7 @@ IUSE="pax_kernel"
 
 RDEPEND=""
 DEPEND="${RDEPEND}
-	|| ( =app-emulation/vmware-player-6.0.${PV_MINOR}*
-	=app-emulation/vmware-workstation-11.1.${PV_MINOR}* )"
+	=app-emulation/vmware-workstation-${PV_MINOR}*"
 
 S=${WORKDIR}
 
@@ -81,8 +80,8 @@ src_prepare() {
 			"${FILESDIR}/666-vmblock.patch" 
 
 	kernel_is ge 3 19 0 && epatch \
-			"${FILESDIR}/666-kernel-3.19.patch" \
 			"${FILESDIR}/666-kernel-3.19-2.patch"
+#			"${FILESDIR}/666-kernel-3.19.patch" \
 
 	# Allow user patches so they can support RC kernels and whatever else
 	epatch_user

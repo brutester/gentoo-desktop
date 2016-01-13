@@ -1,10 +1,10 @@
-# Copyright 1999-2014 Gentoo Foundation
+# Copyright 1999-2015 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/app-emulation/vmware-workstation/vmware-workstation-10.0.2.1744117.ebuild,v 1.1 2014/04/19 10:13:35 dilfridge Exp $
+# $Id$
 
-EAPI="4"
+EAPI=5
 
-inherit eutils versionator fdo-mime systemd gnome2-utils pam vmware-bundle
+inherit eutils versionator readme.gentoo fdo-mime systemd gnome2-utils pam vmware-bundle
 
 MY_PN="VMware-Workstation"
 MY_PV=$(get_version_component_range 1-3)
@@ -16,14 +16,14 @@ SYSTEMD_UNITS_TAG="gentoo-01"
 
 DESCRIPTION="Emulate a complete PC on your PC without the usual performance overhead of most emulators"
 HOMEPAGE="http://www.vmware.com/products/workstation/"
-BASE_URI="http://softwareupdate.vmware.com/cds/vmw-desktop/ws/${MY_PV}/${PV_BUILD}/linux/core/"
+BASE_URI="https://softwareupdate.vmware.com/cds/vmw-desktop/ws/${MY_PV}/${PV_BUILD}/linux/core/"
 SRC_URI="
 	amd64? ( ${BASE_URI}${MY_P}.x86_64.bundle.tar )
 	https://github.com/akhuettel/systemd-vmware/archive/${SYSTEMD_UNITS_TAG}.tar.gz
 	"
 LICENSE="vmware GPL-2"
 SLOT="0"
-KEYWORDS="-* ~amd64 ~x86"
+KEYWORDS="-* ~amd64"
 IUSE="cups doc ovftool server vix vmware-tools"
 RESTRICT="mirror strip"
 
@@ -32,27 +32,27 @@ RESTRICT="mirror strip"
 RDEPEND="dev-cpp/cairomm
 	dev-cpp/glibmm:2
 	dev-cpp/gtkmm:2.4
-	dev-cpp/libgnomecanvasmm
 	dev-cpp/pangomm
 	dev-libs/atk
 	dev-libs/glib:2
 	dev-libs/icu
 	dev-libs/expat
 	dev-libs/libaio
-	dev-libs/libgcrypt:11
-	dev-libs/libsigc++
+	=dev-libs/libgcrypt-1.5*
+	dev-libs/libsigc++:2
 	dev-libs/libxml2
-	=dev-libs/openssl-0.9.8*
+	dev-libs/openssl:0
 	dev-libs/xmlrpc-c
 	gnome-base/libgnomecanvas
-	gnome-base/libgtop:2.28
+	gnome-base/libgtop:2
 	gnome-base/librsvg:2
 	gnome-base/orbit
 	media-libs/fontconfig
 	media-libs/freetype
 	media-libs/libart_lgpl
-	=media-libs/libpng-1.2*
+	media-libs/libpng:1.2
 	media-libs/libpng
+	media-libs/tiff:3
 	net-misc/curl
 	cups? ( net-print/cups )
 	sys-devel/gcc
@@ -84,7 +84,7 @@ RDEPEND="dev-cpp/cairomm
 	x11-libs/startup-notification
 	x11-themes/hicolor-icon-theme
 	!app-emulation/vmware-player"
-PDEPEND="~app-emulation/vmware-modules-304.${PV_MINOR}
+PDEPEND="~app-emulation/vmware-modules-308.${MY_PV}
 	vmware-tools? ( app-emulation/vmware-tools )"
 
 S=${WORKDIR}
@@ -92,11 +92,14 @@ VM_INSTALL_DIR="/opt/vmware"
 VM_DATA_STORE_DIR="/var/lib/vmware/Shared VMs"
 VM_HOSTD_USER="root"
 
+QA_PREBUILT="/opt/*"
+
+QA_WX_LOAD="opt/vmware/lib/vmware/tools-upgraders/vmware-tools-upgrader-32 opt/vmware/lib/vmware/bin/vmware-vmx-stats opt/vmware/lib/vmware/bin/vmware-vmx-debug opt/vmware/lib/vmware/bin/vmware-vmx"
+
 src_unpack() {
 	default
 	local bundle
 	use amd64 && bundle=${MY_P}.x86_64.bundle
-	use x86 && bundle=${MY_P}.i386.bundle
 	local component; for component in \
 		vmware-vmx \
 		vmware-player-app \
@@ -116,7 +119,7 @@ src_unpack() {
 
 	if use vix; then
 		vmware-bundle_extract-bundle-component "${bundle}" vmware-vix-core vmware-vix
-		vmware-bundle_extract-bundle-component "${bundle}" vmware-vix-lib-Workstation1000andvSphere550 vmware-vix
+		vmware-bundle_extract-bundle-component "${bundle}" vmware-vix-lib-Workstation1200 vmware-vix
 	fi
 	if use ovftool; then
 		vmware-bundle_extract-bundle-component "${bundle}" vmware-ovftool
@@ -136,25 +139,25 @@ src_prepare() {
 	find "${S}" -name '*.a' -delete
 
 #	clean_bundled_libs
-}
 
-clean_bundled_libs() {
-	ebegin 'Removing superfluous libraries'
-	cd lib/lib || die
-	ldconfig -p | \
-		sed 's:^\s\+\([^(]*[^( ]\).*=> /.*$:\1:g;t;d' | \
-		fgrep -vx 'libcrypto.so.0.9.8
-libssl.so.0.9.8i
-libgcr.so.0
-libglib-2.0.so.0' |
-		xargs -d'\n' -r rm -rf
-	eend
+	DOC_CONTENTS="
+/etc/env.d is updated during ${PN} installation. Please run:\n
+env-update && source /etc/profile\n
+Before you can use vmware workstation, you must configure a default network setup.
+You can do this by running 'emerge --config ${PN}'.\n
+To be able to run ${PN} your user must be in the vmware group.
+"
 }
 
 src_install() {
 	local major_minor=$(get_version_component_range 1-2 "${PV}")
 	local major_minor_revision=$(get_version_component_range 1-3 "${PV}")
 	local build=$(get_version_component_range 4 "${PV}")
+
+	# revdep-rebuild entry
+	insinto /etc/revdep-rebuild
+	echo "SEARCH_DIRS_MASK=\"${VM_INSTALL_DIR}\"" >> ${T}/10${PN}
+	doins "${T}"/10${PN}
 
 	# install the binaries
 	into "${VM_INSTALL_DIR}"
@@ -165,10 +168,10 @@ src_install() {
 	doins -r lib/*
 
 	# Bug 432918
-	dosym "${VM_INSTALL_DIR}"/lib/vmware/lib/libcrypto.so.0.9.8/libcrypto.so.0.9.8 \
-		"${VM_INSTALL_DIR}"/lib/vmware/lib/libvmwarebase.so.0/libcrypto.so.0.9.8
-	dosym "${VM_INSTALL_DIR}"/lib/vmware/lib/libssl.so.0.9.8/libssl.so.0.9.8 \
-		"${VM_INSTALL_DIR}"/lib/vmware/lib/libvmwarebase.so.0/libssl.so.0.9.8
+	dosym "${VM_INSTALL_DIR}"/lib/vmware/lib/libcrypto.so.1.0.1/libcrypto.so.1.0.1 \
+		"${VM_INSTALL_DIR}"/lib/vmware/lib/libvmwarebase.so.0/libcrypto.so.1.0.1
+	dosym "${VM_INSTALL_DIR}"/lib/vmware/lib/libssl.so.1.0.1/libssl.so.1.0.1 \
+		"${VM_INSTALL_DIR}"/lib/vmware/lib/libvmwarebase.so.0/libssl.so.1.0.1
 
 	# install the ancillaries
 	insinto /usr
@@ -181,12 +184,6 @@ src_install() {
 		insinto /etc/cups
 		doins -r etc/cups/*
 	fi
-
-	insinto /etc/xdg
-	doins -r etc/xdg/*
-
-	# install documentation
-	doman man/man1/vmware.1.gz
 
 	if use doc; then
 		dodoc doc/*
@@ -214,7 +211,7 @@ src_install() {
 		doins -r lib/*
 
 		into "${VM_INSTALL_DIR}"
-		for tool in  vmware-{hostd,wssc-adminTool} ; do
+		for tool in vmware-hostd wssc-adminTool ; do
 			cat > "${T}/${tool}" <<-EOF
 				#!/usr/bin/env bash
 				set -e
@@ -298,7 +295,7 @@ src_install() {
 	fperms 4711 "${VM_INSTALL_DIR}"/bin/vmware-mount
 	fperms 4711 "${VM_INSTALL_DIR}"/lib/vmware/bin/vmware-vmx{,-debug,-stats}
 	if use server; then
-		fperms 0755 "${VM_INSTALL_DIR}"/lib/vmware/bin/vmware-{hostd,wssc-adminTool}
+		fperms 0755 "${VM_INSTALL_DIR}"/lib/vmware/bin/{vmware-hostd,wssc-adminTool}
 		fperms 4711 "${VM_INSTALL_DIR}"/sbin/vmware-authd
 		fperms 1777 "${VM_DATA_STORE_DIR}"
 	fi
@@ -459,7 +456,13 @@ src_install() {
 	fi
 
 	# install systemd unit files
-	systemd_dounit "${WORKDIR}/systemd-vmware-${SYSTEMD_UNITS_TAG}/"*.{service,target}
+	systemd_dounit "${FILESDIR}/vmware.target"
+	systemd_dounit "${FILESDIR}/vmware-vmw_vmci.service"
+	systemd_dounit "${FILESDIR}/vmware-vmw_vsock.service"
+	systemd_dounit "${FILESDIR}/vmware-vmw_vsock_vmci.service"
+	systemd_dounit "${WORKDIR}/systemd-vmware-${SYSTEMD_UNITS_TAG}/"*.service
+
+	readme.gentoo_create_doc
 }
 
 pkg_config() {
@@ -473,12 +476,7 @@ pkg_preinst() {
 pkg_postinst() {
 	fdo-mime_desktop_database_update
 	gnome2_icon_cache_update
-
-	ewarn "/etc/env.d was updated. Please run:"
-	ewarn "env-update && source /etc/profile"
-	ewarn ""
-	ewarn "Before you can use vmware workstation, you must configure a default network setup."
-	ewarn "You can do this by running 'emerge --config ${PN}'."
+	readme.gentoo_pkg_postinst
 }
 
 pkg_prerm() {
