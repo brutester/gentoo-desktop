@@ -23,5 +23,5 @@ src_install() {
 	newins data/freshwrapper.conf.example freshwrapper.conf
 	cd "${WORKDIR}/${P}_build"
 	insinto /usr/lib64/nsbrowser/plugins/
-	doins libfreshwrapper-pepperflash.so
+	doins libfreshwrapper-flashplayer.so
 }
