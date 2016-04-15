@@ -1,13 +1,13 @@
 
 EAPI=5
 
-inherit autotools
+inherit autotools eutils
 
 SLOT="0"
-SRC_URI="http://www.ti.com/lit/sw/slac460k/slac460k.zip"
+SRC_URI="http://www.ti.com/lit/sw/slac460o/slac460o.zip"
 KEYWORDS="~x86 ~amd64"
 
-S="${WORKDIR}/MSPDebugStack_OS_Package"
+S="${WORKDIR}"
 
 src_prepare() {
 	cd "${S}"
@@ -18,8 +18,9 @@ src_prepare() {
 	
 	sed 's/ThirdParty\/lib\/hid\-libusb.o/-lhidapi-libusb -lhidapi-hidraw/g' -i Makefile || die
 	
-	mkdir "ThirdParty/lib"
+	sed 's/HIDOBJ :=.*/HIDOBJ := /g' -i  Makefile || die
 	
+	epatch "${FILESDIR}/gcc5.patch"
 }
 
 src_install() {

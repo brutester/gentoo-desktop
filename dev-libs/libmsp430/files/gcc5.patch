@@ -1,0 +1,15 @@
+--- DLL430_v3/src/TI/DLL430/UsbCdcIoChannel.cpp.old	2016-04-15 15:23:13.556231877 +0300
++++ DLL430_v3/src/TI/DLL430/UsbCdcIoChannel.cpp	2016-04-15 15:22:58.696807011 +0300
+@@ -317,10 +317,10 @@
+ 				string modalias;
+ 				int interfaceNumber = -1;
+ 
+-				ifstream modAliasStream((it->path()/"device/modalias").string().c_str());
++				std::ifstream modAliasStream((it->path()/"device/modalias").string().c_str());
+ 				modAliasStream >> modalias;
+ 
+-				ifstream ifNumStream((it->path()/"device/bInterfaceNumber").string().c_str());
++				std::ifstream ifNumStream((it->path()/"device/bInterfaceNumber").string().c_str());
+ 				ifNumStream >> interfaceNumber;
+ 				if (modalias.find(cdcIdStream.str()) == 0 && interfaceNumber == 0)
+ 				{
