@@ -1,0 +1,69 @@
+--- vmmon-only/linux/hostif.c.new	2016-05-20 17:15:22.849863475 +0300
++++ vmmon-only/linux/hostif.c	2016-05-20 17:17:11.589863629 +0300
+@@ -1163,7 +1163,7 @@
+    int retval;
+ 
+    down_read(&current->mm->mmap_sem);
+-   retval = get_user_pages(current, current->mm, (unsigned long)uvAddr,
++   retval = get_user_pages_remote(current, current->mm, (unsigned long)uvAddr,
+                            numPages, 0, 0, ppages, NULL);
+    up_read(&current->mm->mmap_sem);
+ 
+--- vmnet-only/userif.c.new	2016-05-20 17:15:27.729863482 +0300
++++ vmnet-only/userif.c	2016-05-20 17:16:57.259863608 +0300
+@@ -113,7 +113,7 @@
+    int retval;
+ 
+    down_read(&current->mm->mmap_sem);
+-   retval = get_user_pages(current, current->mm, addr,
++   retval = get_user_pages_remote(current, current->mm, addr,
+ 			   1, 1, 0, &page, NULL);
+    up_read(&current->mm->mmap_sem);
+ 
+--- vmci-only/linux/driver.c.new	2016-05-20 17:15:33.289863490 +0300
++++ vmci-only/linux/driver.c	2016-05-20 17:16:42.909863588 +0300
+@@ -1467,7 +1467,7 @@
+    int retval;
+ 
+    down_read(&current->mm->mmap_sem);
+-   retval = get_user_pages(current, current->mm, addr,
++   retval = get_user_pages_remote(current, current->mm, addr,
+                            1, 1, 0, &page, NULL);
+    up_read(&current->mm->mmap_sem);
+ 
+--- vmci-only/linux/vmciKernelIf.c.new	2016-05-20 17:15:38.909863498 +0300
++++ vmci-only/linux/vmciKernelIf.c	2016-05-20 17:16:29.869863570 +0300
+@@ -2048,7 +2048,7 @@
+    int err = VMCI_SUCCESS;
+ 
+    down_write(&current->mm->mmap_sem);
+-   retval = get_user_pages(current,
++   retval = get_user_pages_remote(current,
+                            current->mm,
+                            (VA)produceUVA,
+                            produceQ->kernelIf->numPages,
+@@ -2056,13 +2056,13 @@
+                            produceQ->kernelIf->u.h.headerPage,
+                            NULL);
+    if (retval < produceQ->kernelIf->numPages) {
+-      Log("get_user_pages(produce) failed (retval=%d)\n", retval);
++      Log("get_user_pages_remote(produce) failed (retval=%d)\n", retval);
+       VMCIReleasePages(produceQ->kernelIf->u.h.headerPage, retval, FALSE);
+       err = VMCI_ERROR_NO_MEM;
+       goto out;
+    }
+ 
+-   retval = get_user_pages(current,
++   retval = get_user_pages_remote(current,
+                            current->mm,
+                            (VA)consumeUVA,
+                            consumeQ->kernelIf->numPages,
+@@ -2070,7 +2070,7 @@
+                            consumeQ->kernelIf->u.h.headerPage,
+                            NULL);
+    if (retval < consumeQ->kernelIf->numPages) {
+-      Log("get_user_pages(consume) failed (retval=%d)\n", retval);
++      Log("get_user_pages_remote(consume) failed (retval=%d)\n", retval);
+       VMCIReleasePages(consumeQ->kernelIf->u.h.headerPage, retval, FALSE);
+       VMCIReleasePages(produceQ->kernelIf->u.h.headerPage,
+                        produceQ->kernelIf->numPages, FALSE);
