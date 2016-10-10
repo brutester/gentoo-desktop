@@ -5,7 +5,7 @@
 inherit versionator vmware-bundle
 
 MY_PV="$(replace_version_separator 3 - $PV)"
-BASE_URI="http://softwareupdate.vmware.com/cds/vmw-desktop/ws/12.0.1/$(get_version_component_range 4)/linux/packages/"
+BASE_URI="http://softwareupdate.vmware.com/cds/vmw-desktop/ws/12.5.0/$(get_version_component_range 4)/linux/packages/"
 
 DESCRIPTION="VMware Tools for guest operating systems"
 HOMEPAGE="http://www.vmware.com/products/player/"
@@ -23,7 +23,7 @@ IUSE_VMWARE_GUEST="freebsd linux netware solaris windows winPre2k"
 
 VM_INSTALL_DIR="/opt/vmware"
 
-MY_PV="10.0.1-3160059"
+MY_PV="10.0.10-4301679"
 for guest in ${IUSE_VMWARE_GUEST} ; do
 	SRC_URI+=" vmware_guest_${guest}? (
 		amd64? ( ${BASE_URI}vmware-tools-${guest}-${MY_PV}.x86_64.component.tar )

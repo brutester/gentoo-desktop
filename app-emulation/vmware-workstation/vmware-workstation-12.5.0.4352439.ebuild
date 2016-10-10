@@ -11,6 +11,7 @@ MY_PV=$(get_version_component_range 1-3)
 PV_MINOR=$(get_version_component_range 3)
 PV_BUILD=$(get_version_component_range 4)
 MY_P="${MY_PN}-${MY_PV}-${PV_BUILD}"
+VMW_TOOLS_PV="10.0.10.${PV_BUILD}"
 
 SYSTEMD_UNITS_TAG="gentoo-01"
 
@@ -18,7 +19,7 @@ DESCRIPTION="Emulate a complete PC on your PC without the usual performance over
 HOMEPAGE="http://www.vmware.com/products/workstation/"
 BASE_URI="https://softwareupdate.vmware.com/cds/vmw-desktop/ws/${MY_PV}/${PV_BUILD}/linux/core/"
 SRC_URI="
-	amd64? ( ${BASE_URI}${MY_P}.x86_64.bundle.tar )
+	amd64? ( ${BASE_URI}${MY_P}.x86_64.bundle )
 	https://github.com/akhuettel/systemd-vmware/archive/${SYSTEMD_UNITS_TAG}.tar.gz
 	"
 LICENSE="vmware GPL-2"
@@ -85,7 +86,7 @@ RDEPEND="dev-cpp/cairomm
 	x11-themes/hicolor-icon-theme
 	!app-emulation/vmware-player"
 PDEPEND="~app-emulation/vmware-modules-308.${MY_PV}
-	vmware-tools? ( app-emulation/vmware-tools )"
+	vmware-tools? ( =app-emulation/vmware-tools-${VMW_TOOLS_PV} )"
 
 S=${WORKDIR}
 VM_INSTALL_DIR="/opt/vmware"
@@ -97,9 +98,9 @@ QA_PREBUILT="/opt/*"
 QA_WX_LOAD="opt/vmware/lib/vmware/tools-upgraders/vmware-tools-upgrader-32 opt/vmware/lib/vmware/bin/vmware-vmx-stats opt/vmware/lib/vmware/bin/vmware-vmx-debug opt/vmware/lib/vmware/bin/vmware-vmx"
 
 src_unpack() {
-	default
+	unpack "${SYSTEMD_UNITS_TAG}.tar.gz"
 	local bundle
-	use amd64 && bundle=${MY_P}.x86_64.bundle
+	use amd64 && bundle=/usr/portage/distfiles/${MY_P}.x86_64.bundle
 	local component; for component in \
 		vmware-vmx \
 		vmware-player-app \
