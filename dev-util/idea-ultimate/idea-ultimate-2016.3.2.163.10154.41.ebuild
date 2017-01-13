@@ -7,7 +7,13 @@ inherit eutils versionator
 
 SLOT="0"
 PV_STRING="$(get_version_component_range 4-6)"
-MY_PV="$(get_version_component_range 1-3)"
+# Distingwish between initial release and patch releases
+if [[ "$(get_version_component_range 3)x" = "0x" ]]
+then 
+    MY_PV="$(get_version_component_range 1-2)"
+else
+    MY_PV="$(get_version_component_range 1-3)"
+fi
 MY_PN="idea"
 
 # distinguish settings for official stable releases and EAP-version releases
