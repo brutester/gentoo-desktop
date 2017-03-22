@@ -11,7 +11,7 @@ MY_PV=$(get_version_component_range 1-3)
 PV_MINOR=$(get_version_component_range 3)
 PV_BUILD=$(get_version_component_range 4)
 MY_P="${MY_PN}-${MY_PV}-${PV_BUILD}"
-VMW_TOOLS_PV="10.0.10.${PV_BUILD}"
+VMW_TOOLS_PV="10.1.5.${PV_BUILD}"
 
 SYSTEMD_UNITS_TAG="gentoo-01"
 

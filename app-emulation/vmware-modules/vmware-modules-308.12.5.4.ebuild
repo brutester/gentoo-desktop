@@ -82,8 +82,8 @@ src_prepare() {
 			"${FILESDIR}/666-kernel-3.19-2.patch"
 #	kernel_is ge 4 6 0 && epatch \
 #			"${FILESDIR}/666-kernel-4.6.patch"
-	kernel_is ge 4 9 0 && epatch \
-			"${FILESDIR}/666-kernel-4.9.patch"
+#	kernel_is ge 4 9 0 && epatch \
+#			"${FILESDIR}/666-kernel-4.9.patch"
 
 	# Allow user patches so they can support RC kernels and whatever else
 	epatch_user
